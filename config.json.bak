@@ -1,0 +1,31 @@
+{
+  "llm": {
+    "provider": "zhipu",
+    "model": "glm-4",
+    "api_key": "填写你的API_KEY",
+    "base_url": "https://open.bigmodel.cn/api/paas/v4",
+    "temperature": 0.3,
+    "max_tokens": 2000,
+    "timeout": 30
+  },
+  "translation": {
+    "enabled": true,
+    "target_language": "zh-CN",
+    "fields_to_translate": [
+      "title",
+      "brief_summary", 
+      "detailed_description",
+      "conditions",
+      "interventions",
+      "inclusion_criteria",
+      "exclusion_criteria",
+      "primary_outcome",
+      "secondary_outcome"
+    ],
+    "preserve_medical_terms": true,
+    "cache_enabled": true,
+    "cache_file": "translation_cache.json",
+    "batch_size": 5
+  },
+  "system_prompt": "你是一个专业的医学翻译专家，专门翻译临床试验相关内容。请将以下英文内容翻译成中文，要求：1. 保持医学术语的准确性；2. 语言通俗易懂，便于患者理解；3. 保留重要的专业名词（如药物名称、疾病名称等）的英文原文；4. 翻译要简洁明了。请只返回翻译结果，不要添加任何解释。"
+}
