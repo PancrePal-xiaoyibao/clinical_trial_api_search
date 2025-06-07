@@ -168,8 +168,8 @@ results = finder.get_pancreatic_cancer_trials(
 ## 技术细节
 
 ### API使用
-- 使用ClinicalTrials.gov的旧版API（更稳定）
-- 基础URL: `https://ClinicalTrials.gov/api/query/study_fields`
+- 使用ClinicalTrials.gov的新版API v2
+- 基础URL: `https://beta-ut.clinicaltrials.gov/api/v2`
 - 返回格式: JSON
 - 请求超时: 30秒
 
@@ -250,8 +250,119 @@ result = translator.translate("Clinical trial for pancreatic cancer")
 print(result)  # 输出中文翻译
 ```
 
+## n8n集成和API调用指南
+
+### 直接API调用
+
+您可以直接通过HTTP请求调用ClinicalTrials.gov API v2，无需使用Python脚本：
+
+#### API端点示例
+
+```
+https://beta-ut.clinicaltrials.gov/api/v2/studies?format=json&markupFormat=markdown&query.cond=pancreatic+cancer&query.locn=china&filter.overallStatus=RECRUITING&postFilter.advanced=AREA%5BStartDate%5D2025&aggFilters=status%3Arec%2Cphase%3A4+3+2+1&countTotal=true&pageSize=50
+```
+
+#### 参数说明
+
+- `format=json`: 返回JSON格式数据
+- `markupFormat=markdown`: 内容使用Markdown格式
+- `query.cond=pancreatic+cancer`: 搜索条件（疾病名称）
+- `query.locn=china`: 地区筛选（中国）
+- `filter.overallStatus=RECRUITING`: 状态筛选（招募中）
+- `postFilter.advanced=AREA[StartDate]2025`: 开始日期筛选
+- `aggFilters=status:rec,phase:4+3+2+1`: 聚合筛选（状态和阶段）
+- `countTotal=true`: 返回总数
+- `pageSize=50`: 每页结果数量
+
+#### curl命令示例
+
+```bash
+curl --location 'https://beta-ut.clinicaltrials.gov/api/v2/studies?format=json&markupFormat=markdown&query.cond=pancreatic%2Bcancer&query.locn=china&filter.overallStatus=RECRUITING&postFilter.advanced=AREA%5BStartDate%5D2025&aggFilters=status%3Arec%2Cphase%3A4%2B3%2B2%2B1&countTotal=true&pageSize=50' \
+--header 'Cookie: ncbi_sid=83C302B854259CEA_E106SID'
+```
+
+### n8n集成
+
+在n8n中使用HTTP Request节点调用API：
+
+#### 节点配置
+
+1. **节点类型**: HTTP Request
+2. **方法**: GET
+3. **URL**: `https://beta-ut.clinicaltrials.gov/api/v2/studies`
+4. **查询参数**:
+   ```json
+   {
+     "format": "json",
+     "markupFormat": "markdown",
+     "query.cond": "pancreatic cancer",
+     "query.locn": "china",
+     "filter.overallStatus": "RECRUITING",
+     "postFilter.advanced": "AREA[StartDate]2025",
+     "aggFilters": "status:rec,phase:4+3+2+1",
+     "countTotal": "true",
+     "pageSize": "50"
+   }
+   ```
+5. **请求头**:
+   ```json
+   {
+     "Cookie": "ncbi_sid=83C302B854259CEA_E106SID"
+   }
+   ```
+
+#### 常用参数组合
+
+**搜索胰腺癌试验（中国地区）**:
+```
+query.cond=pancreatic+cancer
+query.locn=china
+filter.overallStatus=RECRUITING
+```
+
+**搜索乳腺癌试验（美国地区）**:
+```
+query.cond=breast+cancer
+query.locn=united+states
+filter.overallStatus=RECRUITING
+```
+
+**按试验阶段筛选**:
+```
+aggFilters=phase:3+2  # 仅III期和II期
+aggFilters=phase:1    # 仅I期
+```
+
+### 响应数据结构
+
+API返回的JSON数据包含以下主要字段：
+
+```json
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT12345678",
+          "briefTitle": "试验标题"
+        },
+        "statusModule": {
+          "overallStatus": "RECRUITING",
+          "phase": "PHASE2"
+        },
+        "contactsLocationsModule": {
+          "locations": [...]
+        }
+      }
+    }
+  ],
+  "totalCount": 100
+}
+```
+
 ## 更新日志
 
+- v2.1.0: 添加n8n集成指南和直接API调用说明
 - v2.0.0: 添加交互式搜索、地区选择、翻译功能
 - v1.5.0: 支持多种疾病类型搜索
 - v1.0.0: 初始版本，支持基本的胰腺癌试验查询功能
